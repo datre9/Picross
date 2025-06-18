@@ -2,6 +2,8 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.Random;
 
 public class MyFrame extends JFrame implements ActionListener {
@@ -116,6 +118,22 @@ public class MyFrame extends JFrame implements ActionListener {
                 button.setFont(new Font("Arial", Font.BOLD, 15));
                 button.setText("X");
                 button.setFocusable(false);
+                button.addMouseListener(new MouseAdapter() {
+                    @Override
+                    public void mouseReleased(MouseEvent e) {
+                        if (!button.isEnabled()) {
+                            return;  // Ignore clicks on disabled buttons
+                        }
+
+                        if (e.getButton() == MouseEvent.BUTTON1) {  // Left click
+                            button.setBackground(Color.GREEN);
+                        } else if (e.getButton() == MouseEvent.BUTTON3) {  // Right click
+                            button.setBackground(Color.RED);
+                        }
+                        button.repaint();
+                        button.setEnabled(false);  // Disable button after click
+                    }
+                });
                 centerPanel.add(button);
             }
 

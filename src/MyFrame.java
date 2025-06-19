@@ -22,6 +22,11 @@ public class MyFrame extends JFrame implements ActionListener {
     JMenuItem playItem;
     JMenuItem errorsItem;
 
+    int rows;
+    int cols;
+
+    Picross picross;
+
     public MyFrame() {
         setTitle("Picross Game");
         setSize(800, 600);
@@ -85,14 +90,16 @@ public class MyFrame extends JFrame implements ActionListener {
                     "Enter the number of rows, columns, and seed or nothing for random seed (space-separated):");
 
             String[] parts = line.split(" ");
-            int rows = Integer.parseInt(parts[0]);
-            int cols = Integer.parseInt(parts[1]);
+            rows = Integer.parseInt(parts[0]);
+            cols = Integer.parseInt(parts[1]);
             int seed;
             if (parts.length == 2) {
                 seed = rand.nextInt();
             } else {
                 seed = Integer.parseInt(parts[2]);
             }
+
+            picross = new  Picross(rows, cols, seed);
 
             // Update layouts
             centerLayout.setRows(rows);
@@ -108,15 +115,15 @@ public class MyFrame extends JFrame implements ActionListener {
             westPanel.removeAll();
 
             // Add buttons to center panel
+            // TODO: Button doesnt change foreground (text) color on click
             for (int i = 0; i < rows * cols; i++) {
                 JButton button = new JButton();
+                button.setName("" + i);
                 button.setBackground(Color.BLACK);
                 button.setOpaque(true);
                 button.setBorderPainted(true);
                 button.setBorder(BorderFactory.createLineBorder(Color.GRAY, 1));
-                button.setForeground(Color.RED);
-                button.setFont(new Font("Arial", Font.BOLD, 15));
-                button.setText("X");
+                button.setFont(new Font("Arial", Font.BOLD, 20));
                 button.setFocusable(false);
                 button.addMouseListener(new MouseAdapter() {
                     @Override
@@ -125,11 +132,37 @@ public class MyFrame extends JFrame implements ActionListener {
                             return;  // Ignore clicks on disabled buttons
                         }
 
+                        int index = Integer.parseInt(e.getComponent().getName());
+
+                        // TODO: Reformat, left/right only changes boolean, switch after that
                         if (e.getButton() == MouseEvent.BUTTON1) {  // Left click
-                            button.setBackground(Color.GREEN);
+                            int isMine = calculateHit(index, true);
+
+                            switch (isMine) {
+                                case -1:
+                                    button.setBackground(Color.DARK_GRAY);
+                                    button.setForeground(Color.RED);
+                                    button.setText("X");
+                                    break;
+                                case 2:
+                                    button.setBackground(Color.BLUE);
+                                    break;
+                            }
                         } else if (e.getButton() == MouseEvent.BUTTON3) {  // Right click
-                            button.setBackground(Color.RED);
+                            int isMine = calculateHit(index, false);
+
+                            switch (isMine) {
+                                case -2:
+                                    button.setBackground(Color.BLUE);
+                                    button.setForeground(Color.RED);
+                                    button.setText("X");
+                                    break;
+                                case 1:
+                                    button.setBackground(Color.DARK_GRAY);
+                                    break;
+                            }
                         }
+
                         button.repaint();
                         button.setEnabled(false);  // Disable button after click
                     }
@@ -152,6 +185,13 @@ public class MyFrame extends JFrame implements ActionListener {
             revalidate();
             repaint();
         }
+    }
+
+    private int calculateHit(int index, boolean hitIsMine) {
+        int row = index / cols;
+        int col = index % cols;
+
+        return picross.hitCell(row, col, hitIsMine);
     }
 
     private void createHintLabels(JLabel label, JPanel westPanel) {

@@ -52,7 +52,7 @@ public class Picross {
         }
 
         // initiate game
-        game();
+        //game();
     }
 
     // game loop
@@ -112,32 +112,30 @@ public class Picross {
     // marks a cell as hit by the player.
     // hitIsMine indicates player action:
     // true if the player thinks the cell is a mine, false if they think it is not a mine
-    public void hitCell(int row, int col, boolean hitIsMine) {
-        if (row < 0 || row >= realGrid.length || col < 0 || col >= realGrid[0].length) {
-            throw new IndexOutOfBoundsException("Invalid cell coordinates: (" + row + ", " + col + ")");
-        }
-
+    public int hitCell(int row, int col, boolean hitIsMine) {
         // if the cell is already marked, do nothing
         if (playerGrid[row][col] != 0) {
             System.out.println("Cell (" + row + ", " + col + ") is already marked. Please choose another cell.");
-            return;
+            return 0;
         }
 
         if (!hitIsMine && realGrid[row][col]) {
             // player: is not a mine, but the cell is a mine
-            playerGrid[row][col] = -2;
             errors++;
+            return -2;
         } else if (hitIsMine && !realGrid[row][col]) {
             // player: is a mine, but the cell is not a mine
-            playerGrid[row][col] = -1;
             errors++;
+            return -1;
         } else if (!hitIsMine && !realGrid[row][col]) {
             // player: is not a mine, and the cell is not a mine
-            playerGrid[row][col] = 1;
+            return 1;
         } else if (hitIsMine && realGrid[row][col]) {
             // player: is a mine, and the cell is a mine
-            playerGrid[row][col] = 2;
+            return 2;
         }
+
+        return 0;
     }
 
     private void countMines() {

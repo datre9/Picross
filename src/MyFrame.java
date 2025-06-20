@@ -33,10 +33,7 @@ public class MyFrame extends JFrame implements ActionListener {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
 
-        // Set main layout to BorderLayout
-        setLayout(new BorderLayout());
-
-        // Initialize panels with their layouts
+        // Initialize panels
         centerPanel = new JPanel();
         northPanel = new JPanel();
         westPanel = new JPanel();
@@ -45,22 +42,54 @@ public class MyFrame extends JFrame implements ActionListener {
         northLayout = new GridLayout(1, 1);
         westLayout = new GridLayout(1, 1);
 
-        centerPanel.setBackground(Color.BLACK);
-        northPanel.setBackground(Color.BLACK);
-        westPanel.setBackground(Color.BLACK);
-
         centerPanel.setLayout(centerLayout);
         northPanel.setLayout(northLayout);
         westPanel.setLayout(westLayout);
 
-        // Add panels to frame
-        add(centerPanel, BorderLayout.CENTER);
-        add(northPanel, BorderLayout.NORTH);
-        add(westPanel, BorderLayout.WEST);
+        centerPanel.setBackground(Color.BLACK);
+        northPanel.setBackground(Color.BLACK);
+        westPanel.setBackground(Color.BLACK);
 
-        // Setup menu
+        // Layout container with GridBagLayout
+        JPanel layoutPanel = new JPanel(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+
+        // Top-left corner: use a black panel instead of rigid area
+        JPanel topLeftCorner = new JPanel();
+        topLeftCorner.setBackground(Color.BLACK);
+        topLeftCorner.setPreferredSize(new Dimension(50, 50));
+
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.weightx = 0.1;
+        gbc.weighty = 0.1;
+        gbc.fill = GridBagConstraints.BOTH;
+        layoutPanel.add(topLeftCorner, gbc);
+
+        // North (column hints)
+        gbc.gridx = 1;
+        gbc.gridy = 0;
+        gbc.weightx = 0.9;
+        gbc.weighty = 0.1;
+        layoutPanel.add(northPanel, gbc);
+
+        // West (row hints)
+        gbc.gridx = 0;
+        gbc.gridy = 1;
+        gbc.weightx = 0.1;
+        gbc.weighty = 0.9;
+        layoutPanel.add(westPanel, gbc);
+
+        // Center (game grid)
+        gbc.gridx = 1;
+        gbc.gridy = 1;
+        gbc.weightx = 0.9;
+        gbc.weighty = 0.9;
+        layoutPanel.add(centerPanel, gbc);
+
+        add(layoutPanel, BorderLayout.CENTER);
+
         setupMenu();
-
         setVisible(true);
     }
 

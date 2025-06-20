@@ -29,7 +29,7 @@ public class MyFrame extends JFrame implements ActionListener {
 
     public MyFrame() {
         setTitle("Picross Game");
-        setSize(800, 600);
+        setSize(900, 900);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
 
@@ -172,13 +172,26 @@ public class MyFrame extends JFrame implements ActionListener {
 
             // Add labels to north panel
             for (int i = 0; i < cols; i++) {
-                JLabel label = new JLabel("Col " + i, SwingConstants.CENTER);
+                JLabel label = new JLabel("", SwingConstants.CENTER);
+                StringBuilder text = new StringBuilder("<html><center>");
+                var hint = picross.getMinesInCols()[i];
+                for (Integer integer : hint) {
+                    text.append(integer).append("<br>");
+                }
+                text.append("</center></html>");
+                label.setText(text.toString());
                 createHintLabels(label, northPanel);
             }
 
             // Add labels to west panel
             for (int i = 0; i < rows; i++) {
-                JLabel label = new JLabel("Row " + i, SwingConstants.CENTER);
+                JLabel label = new JLabel("", SwingConstants.CENTER);
+                StringBuilder text = new StringBuilder();
+                var hint = picross.getMinesInRows()[i];
+                for (Integer integer : hint) {
+                    text.append(integer).append(" ");
+                }
+                label.setText(text.toString());
                 createHintLabels(label, westPanel);
             }
 

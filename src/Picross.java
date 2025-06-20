@@ -23,6 +23,14 @@ public class Picross {
 
     Scanner input = new Scanner(System.in);
 
+    public ArrayList<Integer>[] getMinesInRows() {
+        return minesInRows;
+    }
+
+    public ArrayList<Integer>[] getMinesInCols() {
+        return minesInCols;
+    }
+
     public Picross(int rows, int cols, int seed) {
         realGrid = new boolean[rows][cols];
         minesInRows = new ArrayList[rows];

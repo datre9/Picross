@@ -18,14 +18,16 @@ public class MyFrame extends JFrame implements ActionListener {
 
     JMenuBar menuBar;
     JMenu playMenu;
-    JMenu infoMenu;
     JMenuItem playItem;
-    JMenuItem errorsItem;
 
     int rows;
     int cols;
 
+    int seed;
     Picross picross;
+
+    int errors = 0;
+    int minesFound = 0;
 
     public MyFrame() {
         setTitle("Picross Game");
@@ -96,18 +98,13 @@ public class MyFrame extends JFrame implements ActionListener {
     private void setupMenu() {
         menuBar = new JMenuBar();
         playMenu = new JMenu("Play");
-        infoMenu = new JMenu("Info");
 
         playItem = new JMenuItem("Start Game");
         playItem.addActionListener(this);
-        errorsItem = new JMenuItem("Errors");
-        errorsItem.addActionListener(this);
 
         playMenu.add(playItem);
-        infoMenu.add(errorsItem);
 
         menuBar.add(playMenu);
-        menuBar.add(infoMenu);
 
         setJMenuBar(menuBar);
     }
@@ -121,7 +118,6 @@ public class MyFrame extends JFrame implements ActionListener {
             String[] parts = line.split(" ");
             rows = Integer.parseInt(parts[0]);
             cols = Integer.parseInt(parts[1]);
-            int seed;
             if (parts.length == 2) {
                 seed = rand.nextInt();
             } else {
@@ -142,6 +138,9 @@ public class MyFrame extends JFrame implements ActionListener {
             centerPanel.removeAll();
             northPanel.removeAll();
             westPanel.removeAll();
+
+            minesFound = 0;
+            errors = 0;
 
             // Add buttons to center panel
             // TODO: Button doesnt change foreground (text) color on click
@@ -172,9 +171,11 @@ public class MyFrame extends JFrame implements ActionListener {
                                     button.setBackground(Color.DARK_GRAY);
                                     button.setForeground(Color.RED);
                                     button.setText("X");
+                                    errors++;
                                     break;
                                 case 2:
                                     button.setBackground(Color.BLUE);
+                                    minesFound++;
                                     break;
                             }
                         } else if (e.getButton() == MouseEvent.BUTTON3) {  // Right click
@@ -185,11 +186,21 @@ public class MyFrame extends JFrame implements ActionListener {
                                     button.setBackground(Color.BLUE);
                                     button.setForeground(Color.RED);
                                     button.setText("X");
+                                    errors++;
+                                    minesFound++;
                                     break;
                                 case 1:
                                     button.setBackground(Color.DARK_GRAY);
                                     break;
                             }
+                        }
+
+                        // Check if the game is won
+                        if (minesFound == picross.getMinesTotal()) {
+                            JOptionPane.showMessageDialog(MyFrame.this,
+                                    "Congratulations! You found all mines! \n" +
+                                            "You made this many mistakes: " + errors + "\n"
+                                            + "Seed: " + seed + ", Board Size: " + rows + "x" + cols);
                         }
 
                         button.repaint();

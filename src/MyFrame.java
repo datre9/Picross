@@ -2,8 +2,6 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.util.Random;
 
 public class MyFrame extends JFrame implements ActionListener {
@@ -17,8 +15,7 @@ public class MyFrame extends JFrame implements ActionListener {
     GridLayout westLayout;
 
     JMenuBar menuBar;
-    JMenu playMenu;
-    JMenuItem playItem;
+    JButton playButton;
 
     int rows;
     int cols;
@@ -36,6 +33,21 @@ public class MyFrame extends JFrame implements ActionListener {
         setLocationRelativeTo(null);
 
         // Initialize panels
+        initializePanels();
+
+        // Layout container with GridBagLayout
+        JPanel layoutPanel = new JPanel(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+
+        setUpGridBag(gbc, layoutPanel);
+
+        add(layoutPanel, BorderLayout.CENTER);
+
+        setupMenu();
+        setVisible(true);
+    }
+
+    private void initializePanels() {
         centerPanel = new JPanel();
         northPanel = new JPanel();
         westPanel = new JPanel();
@@ -51,11 +63,9 @@ public class MyFrame extends JFrame implements ActionListener {
         centerPanel.setBackground(Color.BLACK);
         northPanel.setBackground(Color.BLACK);
         westPanel.setBackground(Color.BLACK);
+    }
 
-        // Layout container with GridBagLayout
-        JPanel layoutPanel = new JPanel(new GridBagLayout());
-        GridBagConstraints gbc = new GridBagConstraints();
-
+    private void setUpGridBag(GridBagConstraints gbc, JPanel layoutPanel) {
         // Top-left corner: use a black panel instead of rigid area
         JPanel topLeftCorner = new JPanel();
         topLeftCorner.setBackground(Color.BLACK);
@@ -88,35 +98,25 @@ public class MyFrame extends JFrame implements ActionListener {
         gbc.weightx = 0.9;
         gbc.weighty = 0.9;
         layoutPanel.add(centerPanel, gbc);
-
-        add(layoutPanel, BorderLayout.CENTER);
-
-        setupMenu();
-        setVisible(true);
     }
 
     private void setupMenu() {
         menuBar = new JMenuBar();
-        playMenu = new JMenu("Play");
-
-        playItem = new JMenuItem("Start Game");
-        playItem.addActionListener(this);
-
-        playMenu.add(playItem);
-
-        menuBar.add(playMenu);
-
+        playButton = new JButton("Start Game");
+        playButton.setFocusable(false);
+        playButton.addActionListener(this);
+        menuBar.add(playButton);
         setJMenuBar(menuBar);
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
-        if (e.getSource() == playItem) {
+        if (e.getSource() == playButton) {
             // User input for game parameters
             getGameParameters();
 
             // Create new Picross game from user parameters
-            picross = new  Picross(rows, cols, seed);
+            picross = new Picross(rows, cols, seed);
 
             // Create new game grid from parameters
             createGrid();
@@ -125,71 +125,12 @@ public class MyFrame extends JFrame implements ActionListener {
             minesFound = 0;
             errors = 0;
 
-            // Add buttons to center panel
-            // TODO: Button doesnt change foreground (text) color on click
+            // Create buttons in grid
+            IntegerWrapper minesFoundWrapper = new IntegerWrapper(0);
+            IntegerWrapper errorsWrapper = new IntegerWrapper(0);
+
             for (int i = 0; i < rows * cols; i++) {
-                JButton button = new JButton();
-                button.setName("" + i);
-                button.setBackground(Color.BLACK);
-                button.setOpaque(true);
-                button.setBorderPainted(true);
-                button.setBorder(BorderFactory.createLineBorder(Color.GRAY, 1));
-                button.setFont(new Font("Arial", Font.BOLD, 20));
-                button.setFocusable(false);
-                button.addMouseListener(new MouseAdapter() {
-                    @Override
-                    public void mouseReleased(MouseEvent e) {
-                        if (!button.isEnabled()) {
-                            return;  // Ignore clicks on disabled buttons
-                        }
-
-                        int index = Integer.parseInt(e.getComponent().getName());
-
-                        // TODO: Reformat, left/right only changes boolean, switch after that
-                        if (e.getButton() == MouseEvent.BUTTON1) {  // Left click
-                            int isMine = calculateHit(index, true);
-
-                            switch (isMine) {
-                                case -1:
-                                    button.setBackground(Color.DARK_GRAY);
-                                    button.setForeground(Color.RED);
-                                    button.setText("X");
-                                    errors++;
-                                    break;
-                                case 2:
-                                    button.setBackground(Color.BLUE);
-                                    minesFound++;
-                                    break;
-                            }
-                        } else if (e.getButton() == MouseEvent.BUTTON3) {  // Right click
-                            int isMine = calculateHit(index, false);
-
-                            switch (isMine) {
-                                case -2:
-                                    button.setBackground(Color.BLUE);
-                                    button.setForeground(Color.RED);
-                                    button.setText("X");
-                                    errors++;
-                                    minesFound++;
-                                    break;
-                                case 1:
-                                    button.setBackground(Color.DARK_GRAY);
-                                    break;
-                            }
-                        }
-
-                        // Check if the game is won
-                        if (minesFound == picross.getMinesTotal()) {
-                            JOptionPane.showMessageDialog(MyFrame.this,
-                                    "Congratulations! You found all mines! \n" +
-                                            "You made this many mistakes: " + errors + "\n"
-                                            + "Seed: " + seed + ", Board Size: " + rows + "x" + cols);
-                        }
-
-                        button.repaint();
-                        button.setEnabled(false);  // Disable button after click
-                    }
-                });
+                GridButton button = new GridButton(picross, rows, cols, i, minesFoundWrapper, errorsWrapper, seed);
                 centerPanel.add(button);
             }
 
@@ -218,9 +159,11 @@ public class MyFrame extends JFrame implements ActionListener {
     }
 
     private void getGameParameters() {
+        // Prompt user for game parameters
         String line = JOptionPane.showInputDialog(this,
                 "Enter the number of rows, columns, and seed or nothing for random seed (space-separated):");
 
+        // Save inputs, seed can be specified or random
         String[] parts = line.split(" ");
         rows = Integer.parseInt(parts[0]);
         cols = Integer.parseInt(parts[1]);
@@ -260,12 +203,5 @@ public class MyFrame extends JFrame implements ActionListener {
             label.setText(text.toString());
             westPanel.add(label);
         }
-    }
-
-    private int calculateHit(int index, boolean hitIsMine) {
-        int row = index / cols;
-        int col = index % cols;
-
-        return picross.hitCell(row, col, hitIsMine);
     }
 }

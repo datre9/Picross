@@ -112,33 +112,16 @@ public class MyFrame extends JFrame implements ActionListener {
     @Override
     public void actionPerformed(ActionEvent e) {
         if (e.getSource() == playItem) {
-            String line = JOptionPane.showInputDialog(this,
-                    "Enter the number of rows, columns, and seed or nothing for random seed (space-separated):");
+            // User input for game parameters
+            getGameParameters();
 
-            String[] parts = line.split(" ");
-            rows = Integer.parseInt(parts[0]);
-            cols = Integer.parseInt(parts[1]);
-            if (parts.length == 2) {
-                seed = rand.nextInt();
-            } else {
-                seed = Integer.parseInt(parts[2]);
-            }
-
+            // Create new Picross game from user parameters
             picross = new  Picross(rows, cols, seed);
 
-            // Update layouts
-            centerLayout.setRows(rows);
-            centerLayout.setColumns(cols);
-            northLayout.setRows(1);
-            northLayout.setColumns(cols);
-            westLayout.setRows(rows);
-            westLayout.setColumns(1);
+            // Create new game grid from parameters
+            createGrid();
 
-            // Clear all panels
-            centerPanel.removeAll();
-            northPanel.removeAll();
-            westPanel.removeAll();
-
+            // Reset game state
             minesFound = 0;
             errors = 0;
 
@@ -210,33 +193,72 @@ public class MyFrame extends JFrame implements ActionListener {
                 centerPanel.add(button);
             }
 
-            // Add labels to north panel
-            for (int i = 0; i < cols; i++) {
-                JLabel label = new JLabel("", SwingConstants.CENTER);
-                StringBuilder text = new StringBuilder("<html><center>");
-                var hint = picross.getMinesInCols()[i];
-                for (Integer integer : hint) {
-                    text.append(integer).append("<br>");
-                }
-                text.append("</center></html>");
-                label.setText(text.toString());
-                createHintLabels(label, northPanel);
-            }
+            // Create hint labels for game
+            createHints();
 
-            // Add labels to west panel
-            for (int i = 0; i < rows; i++) {
-                JLabel label = new JLabel("", SwingConstants.CENTER);
-                StringBuilder text = new StringBuilder();
-                var hint = picross.getMinesInRows()[i];
-                for (Integer integer : hint) {
-                    text.append(integer).append(" ");
-                }
-                label.setText(text.toString());
-                createHintLabels(label, westPanel);
-            }
-
+            // Redraw the window
             revalidate();
             repaint();
+        }
+    }
+
+    private void createGrid() {
+        // Update layouts
+        centerLayout.setRows(rows);
+        centerLayout.setColumns(cols);
+        northLayout.setRows(1);
+        northLayout.setColumns(cols);
+        westLayout.setRows(rows);
+        westLayout.setColumns(1);
+
+        // Clear all panels
+        centerPanel.removeAll();
+        northPanel.removeAll();
+        westPanel.removeAll();
+    }
+
+    private void getGameParameters() {
+        String line = JOptionPane.showInputDialog(this,
+                "Enter the number of rows, columns, and seed or nothing for random seed (space-separated):");
+
+        String[] parts = line.split(" ");
+        rows = Integer.parseInt(parts[0]);
+        cols = Integer.parseInt(parts[1]);
+        if (parts.length == 2) {
+            seed = rand.nextInt();
+        } else {
+            seed = Integer.parseInt(parts[2]);
+        }
+    }
+
+    private void createHints() {
+        // Add labels to north panel
+        for (int i = 0; i < cols; i++) {
+            HintLabel label = new HintLabel();
+
+            StringBuilder text = new StringBuilder("<html><center>");
+            var hint = picross.getMinesInCols()[i];
+            for (Integer integer : hint) {
+                text.append(integer).append("<br>");
+            }
+            text.append("</center></html>");
+
+            label.setText(text.toString());
+            northPanel.add(label);
+        }
+
+        // Add labels to west panel
+        for (int i = 0; i < rows; i++) {
+            HintLabel label = new HintLabel();
+
+            StringBuilder text = new StringBuilder();
+            var hint = picross.getMinesInRows()[i];
+            for (Integer integer : hint) {
+                text.append(integer).append(" ");
+            }
+
+            label.setText(text.toString());
+            westPanel.add(label);
         }
     }
 
@@ -245,14 +267,5 @@ public class MyFrame extends JFrame implements ActionListener {
         int col = index % cols;
 
         return picross.hitCell(row, col, hitIsMine);
-    }
-
-    private void createHintLabels(JLabel label, JPanel westPanel) {
-        label.setForeground(Color.WHITE);
-        label.setBackground(Color.BLACK);
-        label.setOpaque(true);
-        label.setBorder(BorderFactory.createLineBorder(Color.GRAY, 1));
-        label.setFont(new Font("Arial", Font.BOLD, 15));
-        westPanel.add(label);
     }
 }
